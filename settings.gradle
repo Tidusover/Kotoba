@@ -1,0 +1,5 @@
+include 'Kotoba-App'
+include 'Kotoba-Client'
+include 'Kotoba-Connector'
+include 'Kotoba-EJB'
+include 'Kotoba-Web'
