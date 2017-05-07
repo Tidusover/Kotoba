@@ -3,6 +3,7 @@ package se.tidusover.kotoba.external;
 import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 
+import org.jglue.cdiunit.AdditionalClasses;
 import org.jglue.cdiunit.CdiRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +12,10 @@ import org.mockito.Mock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(CdiRunner.class)
+@AdditionalClasses({
+	ConfigurationValueProducer.class,
+	PropertiesResolver.class
+})
 public class JishoWordInformationUTest
 {
 	@Produces

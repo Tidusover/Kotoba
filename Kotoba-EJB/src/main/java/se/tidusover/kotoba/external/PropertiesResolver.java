@@ -1,6 +1,7 @@
 package se.tidusover.kotoba.external;
 
 import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -99,7 +100,7 @@ public class PropertiesResolver
 			System.out.println(file.getName());
 			if(file.isFile() && file.getName().endsWith(PROPERTIES_FILE_EXTENSION))
 			{
-				if(isNull(propertiesFileMap.put(file.getName(), file)))
+				if(nonNull(propertiesFileMap.put(file.getName(), file)))
 				{
 					throw new RuntimeException("Ambigious properties file, more than one file with the name: " + file.getName() + " exists.");
 				}
@@ -108,7 +109,7 @@ public class PropertiesResolver
 			{
 				for (File fileInDirectory : getPropertiesFilesFromDirectory(file))
 				{
-					if(isNull(propertiesFileMap.put(file.getName(), fileInDirectory)))
+					if(nonNull(propertiesFileMap.put(file.getName(), fileInDirectory)))
 					{
 						throw new RuntimeException("Ambigious properties file, more than one file with the name: " + file.getName() + " exists.");
 					}

@@ -1,7 +1,5 @@
 package se.tidusover.kotoba.tool.language;
 
-import static org.junit.Assert.fail;
-
 import org.jglue.cdiunit.AdditionalClasses;
 import org.jglue.cdiunit.CdiRunner;
 import org.junit.After;
@@ -26,13 +24,14 @@ public class JapaneseCharacterCheckerTest
 	public void tearDown() throws Exception
 	{
 	}
-
+	
+	@Ignore
 	@Test
 	public void testContainsHiragana()
 	{
-		fail("Not yet implemented");
 	}
 	
+	@Ignore
 	@Test
 	public void testContainsKatakana() throws Exception
 	{

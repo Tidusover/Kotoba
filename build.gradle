@@ -7,11 +7,12 @@ subprojects {
 
     repositories {
         mavenCentral()
-    }
-	
-	compileJava { 
-		options.encoding = "UTF-8" 
+    }	
+
+	tasks.withType(JavaCompile) {
+		options.encoding = "UTF-8"
 	}
+	
 	//Versions
 	def slf4j_version = "1.7.23"
 	
@@ -20,10 +21,13 @@ subprojects {
 	compile "org.projectlombok:lombok:1.16.12"
 	compile 'com.google.guava:guava:21.0'
 	compile "org.apache.commons:commons-text:1.0"
-	compile "com.squareup.okhttp3:okhttp:3.7.0"
+
 	compile group: 'javax', name: 'javaee-api', version: '7.0'
-	//@Nullable och @Nonnullable annotationer kräver detta
+	//@Required by @Nullable and @Nonnullable annotations
 	compile 'com.google.code.findbugs:findbugs:3.0.1'
+	
+	//HTTP
+	compile "com.squareup.okhttp3:okhttp:3.7.0"
 	
 	//Persistence
 	compile "org.hibernate:hibernate-core:5.2.6.Final"
