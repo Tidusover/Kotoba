@@ -27,6 +27,6 @@ public class ConfigurationValueProducer
 			throw new RuntimeException("Must contain an information provider name and a property name.");
 		}
 		
-		return propertiesResolver.getProperty(propertyKey);
+		return propertiesResolver.getPropertyValue(propertyKey);
 	}		
 }

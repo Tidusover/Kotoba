@@ -7,16 +7,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+
+import se.tidusover.kotoba.tool.helper.ResourceUtils;
 
 @ApplicationScoped
 public class PropertiesResolver
@@ -24,46 +26,36 @@ public class PropertiesResolver
 	private static final String PROPERTIES_FILE_EXTENSION = ".properties";
 	private static final String PROPERTIES_DIRECTORY = "properties";
 	private static final String PROPERTIES_KEY_DELIMITER = ".";
+	private static volatile Map<String, Properties> availablePropertiesMap;
 	
-	private static List<File> availablePropertiesFileSet;
-	
+	@Inject
+	private ResourceUtils resourcesUtil;
+
 	@PostConstruct
-	public void init()
+	private void init()
 	{
-		File propertiesFolder;
-		try
-		{
-			propertiesFolder = new File(Thread.currentThread().getContextClassLoader().getResource(PROPERTIES_DIRECTORY).toURI());
-		}
-		catch (URISyntaxException e)
-		{
-			throw new RuntimeException("Could not load resources from classpath.");
-		}
-		if(isNull(propertiesFolder))
-		{
-			throw new RuntimeException("Could not find any properties files.");
-		}
+		File propertiesDirectory = resourcesUtil.loadDirectoryFromClasspath(PROPERTIES_DIRECTORY);
 		
-		availablePropertiesFileSet = getPropertiesFilesFromDirectory(propertiesFolder);
+		availablePropertiesMap = getPropertiesFromDirectory(propertiesDirectory);
 		
-		if (availablePropertiesFileSet.isEmpty())
+		if (availablePropertiesMap.isEmpty())
 		{
-			throw new RuntimeException("No properties files found.");
+			throw new RuntimeException("No properties found.");
 		}
 	}
 	
-	public String getProperty(String property)
+	public String getPropertyValue(String propertyKeyPath)
 	{
-		String propertyFilename = getPropertyFilename(property);
-		String propertyKey = getPropertyKey(property);
-		
-		Properties propertiesFile = availablePropertiesFileSet.stream()
-				.filter(file -> propertyFilename.equals(file.getName()))
-				.map(this::getPropertiesFromFile)
-				.findAny()
+		String propertyFilename = getPropertyFilename(propertyKeyPath);
+		String propertyKey = getPropertyKey(propertyKeyPath);
+
+		Properties properties = availablePropertiesMap.entrySet().stream()
+				.filter(propertiesSet -> propertyFilename.equals(propertiesSet.getKey()))
+				.map(propertiesSet -> propertiesSet.getValue())
+				.findFirst()
 				.orElseThrow(() -> new RuntimeException("Properties file: " + propertyFilename + " not found."));
 		
-		String propertyValue = propertiesFile.getProperty(propertyKey);
+		String propertyValue = properties.getProperty(propertyKey);
 		if (Objects.isNull(propertyValue))
 		{
 			throw new RuntimeException("Property: " + propertyKey + " not found.");
@@ -72,54 +64,55 @@ public class PropertiesResolver
 		return propertyValue;
 	}
 	
-	private String getPropertyFilename(String property)
+	private String getPropertyFilename(String propertyKeyPath)
 	{
 		StringBuilder sb = new StringBuilder()
-				.append(property.substring(0, property.indexOf(PROPERTIES_KEY_DELIMITER)))
+				.append(propertyKeyPath.substring(0, propertyKeyPath.indexOf(PROPERTIES_KEY_DELIMITER)))
 				.append(PROPERTIES_FILE_EXTENSION);
 		
 		return sb.toString();
 	}
 	
-	private String getPropertyKey(String property)
+	private String getPropertyKey(String propertyKeyPath)
 	{
-		return property.substring(property.indexOf(PROPERTIES_KEY_DELIMITER) + 1, property.length());
+		return propertyKeyPath.substring(propertyKeyPath.indexOf(PROPERTIES_KEY_DELIMITER) + 1, propertyKeyPath.length());
 	}
 
-	private List<File> getPropertiesFilesFromDirectory(File directory)
+	private Map<String, Properties> getPropertiesFromDirectory(File directory)
 	{
 		if (isNull(directory) || !directory.isDirectory())
 		{
-			return Collections.emptyList();
+			return Collections.emptyMap();
 		}
 		
-		HashMap<String, File> propertiesFileMap = new HashMap<String, File>();
+		Map<String, Properties> propertiesMap = new HashMap<String, Properties>();
 		
-		for (File file : directory.listFiles())
+		for (File item : directory.listFiles())
 		{
-			System.out.println(file.getName());
-			if(file.isFile() && file.getName().endsWith(PROPERTIES_FILE_EXTENSION))
+			if(item.isFile() && item.getName().endsWith(PROPERTIES_FILE_EXTENSION))
 			{
-				if(nonNull(propertiesFileMap.put(file.getName(), file)))
+				Properties propertiesFromFile = getPropertiesFromFile(item);
+				
+				if(nonNull(propertiesMap.put(item.getName(), propertiesFromFile)))
 				{
-					throw new RuntimeException("Ambigious properties file, more than one file with the name: " + file.getName() + " exists.");
+					throwExceptionAmbigiousPropertiesFile(item);
 				}
 			}
-			else if(file.isDirectory())
+			else
 			{
-				for (File fileInDirectory : getPropertiesFilesFromDirectory(file))
+				for (Entry<String, Properties> propertiesFileInDirectory : getPropertiesFromDirectory(item).entrySet())
 				{
-					if(nonNull(propertiesFileMap.put(file.getName(), fileInDirectory)))
+					if(nonNull(propertiesMap.put(propertiesFileInDirectory.getKey(), propertiesFileInDirectory.getValue())))
 					{
-						throw new RuntimeException("Ambigious properties file, more than one file with the name: " + file.getName() + " exists.");
+						throwExceptionAmbigiousPropertiesFile(item);
 					}
 				}
 			}
 		}
 		
-		return new ArrayList<>(propertiesFileMap.values());
+		return propertiesMap;
 	}
-	
+
 	private Properties getPropertiesFromFile(File file)
 	{
 		Properties properties = new Properties();
@@ -137,5 +130,10 @@ public class PropertiesResolver
 		}
 		
 		return properties;
+	}
+	
+	private void throwExceptionAmbigiousPropertiesFile(File item)
+	{
+		throw new RuntimeException("Ambigious properties file, more than one file with the name: " + item.getName() + " exists.");
 	}
 }

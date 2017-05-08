@@ -56,7 +56,7 @@ public class JishoWordInformation extends FetchWordInformation
 		{
 			StringBuilder sb = new StringBuilder()
 					.append("Communication with: ")
-					.append(INFORMATION_PROVIDER)
+					.append(getInformationProvider())
 					.append(" went wrong.");
 			throw new RuntimeException(sb.toString(), e);
 		}

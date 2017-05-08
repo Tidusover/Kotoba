@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.base.Strings;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 
 public abstract class FetchWordInformation
@@ -26,9 +27,9 @@ public abstract class FetchWordInformation
 	
 	protected final static String[] VALID_PROTOCOLS = {"http", "https"};
 	
-	public final String INFORMATION_PROVIDER;
-	@Getter private final URI informationProviderUri;
-	@Getter private final URI informationProviderApiUri;
+	@Getter private final String informationProvider;
+	@Getter(value = AccessLevel.PROTECTED) private final URI informationProviderUri;
+	@Getter(value = AccessLevel.PROTECTED) private final URI informationProviderApiUri;
 	
 	protected FetchWordInformation(String informationProvider, String informationProviderUrl, String informationProviderApiUrl)
 	{
@@ -36,7 +37,7 @@ public abstract class FetchWordInformation
 		validateStringURLParameter(informationProviderUrl);
 		validateStringURLParameter(informationProviderApiUrl);
 		
-		this.INFORMATION_PROVIDER = informationProvider;
+		this.informationProvider = informationProvider;
 		this.informationProviderUri = URI.create(informationProviderUrl);
 		this.informationProviderApiUri = URI.create(informationProviderApiUrl);
 	}
@@ -61,7 +62,7 @@ public abstract class FetchWordInformation
 		{
 			URL url = new URL(stringURL);
 			boolean urlMatchesValidProtocol = Arrays.stream(VALID_PROTOCOLS)
-					.anyMatch(tjafs -> Objects.equals(tjafs, url.getProtocol()));
+					.anyMatch(protocol -> Objects.equals(protocol, url.getProtocol()));
 			if(!urlMatchesValidProtocol)
 			{
 				throw new IllegalArgumentException("URL contains invalid protocol.");

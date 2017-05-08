@@ -15,12 +15,14 @@ import org.slf4j.event.Level;
 
 import se.tidusover.kotoba.external.json.jisho.Data;
 import se.tidusover.kotoba.external.json.jisho.JishoRoot;
+import se.tidusover.kotoba.tool.helper.ResourceUtils;
 
 @RunWith(CdiRunner.class)
 @AdditionalClasses({
 	ObjectMapperFactory.class,
 	ConfigurationValueProducer.class,
-	PropertiesResolver.class
+	PropertiesResolver.class,
+	ResourceUtils.class
 })
 public class JishoWordInformationITest
 {
